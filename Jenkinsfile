@@ -3,7 +3,7 @@ pipeline {
 
     options {
         ansiColor('xterm')
-        timeout(time: 10, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '10'))
     }
 
     environment {
@@ -12,56 +12,54 @@ pipeline {
     }
 
     stages {
-        stage('Cleanup Workspace') {
+        stage('Prepare & Cleanup') {
             steps {
-                deleteDir()
-                // Видаляємо старі звіти, якщо вони залишились
-                sh "rm -rf allure-results results.xml report.html || true"
-            }
-        }
-
-        stage('Checkout') {
-            steps {
-                checkout scm
+                script {
+                    echo "🧹 Очищення старих контейнерів..."
+                    sh "docker rm -f ${CONTAINER_NAME} || true"
+                }
             }
         }
 
         stage('Build Image') {
             steps {
-                // Збираємо образ з твого Dockerfile
-                sh "docker build -t ${DOCKER_IMAGE} ."
+                script {
+                    echo "🏗️ Збірка Docker образу з Newman..."
+                    sh "docker build -t ${DOCKER_IMAGE} ."
+                }
             }
         }
 
         stage('Run API Tests') {
             steps {
                 script {
+                    echo "🚀 Запуск тестів у контейнері..."
+                    sh """
+                        docker create --name ${CONTAINER_NAME} ${DOCKER_IMAGE} \
+                        run collection.json \
+                        -e env.json \
+                        -r cli,junit,htmlextra \
+                        --reporter-junit-export results.xml \
+                        --reporter-htmlextra-export report.html
+                    """
+                    sh "docker cp collection.json ${CONTAINER_NAME}:/etc/newman/collection.json"
+                    sh "docker cp env.json ${CONTAINER_NAME}:/etc/newman/env.json"
                     try {
-                        // Запускаємо тест.
-                        // --rm автоматично видалить контейнер після завершення,
-                        // але ми даємо ім'я, щоб встигнути скопіювати файли у разі потреби
-                        sh "docker run --name ${CONTAINER_NAME} ${DOCKER_IMAGE}"
+                        sh "docker start -a ${CONTAINER_NAME}"
                     } catch (Exception e) {
-                        echo "Tests failed, but we continue to collect reports..."
-                        currentBuild.result = 'UNSTABLE'
+                        echo "⚠️ Деякі тести не пройшли (це нормально, перевірте звіти)"
                     }
                 }
             }
         }
 
-        stage('Archive Results') {
+        stage('Extract Reports') {
             steps {
                 script {
-                    // Перевіряємо, чи існує контейнер перед копіюванням
-                    def containerExists = sh(script: "docker ps -a --format '{{.Names}}' | grep '^${CONTAINER_NAME}\$' ", returnStatus: true) == 0
-
-                    if (containerExists) {
-                        echo "Extracting reports from container..."
-                        // Копіюємо звіти з контейнера в папку Jenkins
-                        sh "docker cp ${CONTAINER_NAME}:/etc/newman/newman/ . || true"
-                        // Видаляємо контейнер вручну
-                        sh "docker rm -f ${CONTAINER_NAME}"
-                    }
+                    echo "📥 Копіювання звітів з контейнера..."
+                    sh "docker cp ${CONTAINER_NAME}:/etc/newman/results.xml . || true"
+                    sh "docker cp ${CONTAINER_NAME}:/etc/newman/report.html . || true"
+                    sh "docker rm -f ${CONTAINER_NAME} || true"
                 }
             }
         }
@@ -69,17 +67,24 @@ pipeline {
 
     post {
         always {
-            // Публікуємо результати JUnit (якщо Newman генерує xml)
-            junit testResults: '**/results.xml', allowEmptyResults: true
-
-            // Якщо у тебе є HTML звіт, він буде доступний в Artifacts
-            archiveArtifacts artifacts: '*.html', allowEmptyArchive: true
-
-            echo "Pipeline finished. Check artifacts for HTML report."
+            echo "📊 Публікація звітів..."
+            junit 'results.xml'
+            archiveArtifacts artifacts: 'report.html', allowEmptyArchive: true
         }
+
+        success {
+            echo "✅ Тести пройшли успішно!"
+        }
+
+        failure {
+            echo "❌ Помилка в пайплайні!"
+        }
+
         cleanup {
-            // Видаляємо образ, щоб не забивати пам'ять на MacBook
-            sh "docker rmi ${DOCKER_IMAGE} || true"
+            script {
+                echo "♻️ Видалення тимчасового образу..."
+                sh "docker rmi ${DOCKER_IMAGE} || true"
+            }
         }
     }
 }

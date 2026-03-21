@@ -113,7 +113,13 @@
           "listen": "test",
           "script": {
             "exec": [
-              ""
+              "pm.test(\"Status code is 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response time is less than 300ms\", function () {",
+              "    pm.expect(pm.response.responseTime).to.be.below(200);",
+              "});"
             ],
             "type": "text/javascript",
             "packages": {},
@@ -123,8 +129,12 @@
         {
           "listen": "prerequest",
           "script": {
-            "exec": [],
-            "type": "text/javascript"
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
           }
         }
       ],
@@ -167,7 +177,7 @@
             },
             {
               "key": "phone",
-              "value": "11122233",
+              "value": "0680000001",
               "type": "text",
               "description": "Enter phone number"
             },
@@ -199,7 +209,26 @@
           "listen": "test",
           "script": {
             "exec": [
-              ""
+              "pm.test(\"Status code is 200\", function () {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Response schema: success + data\", function () {",
+              "  const jsonData = pm.response.json();",
+              "  pm.expect(jsonData).to.have.property(\"success\", true);",
+              "  pm.expect(jsonData).to.have.property(\"status\", 200);",
+              "  pm.expect(jsonData).to.have.property(\"data\");",
+              "});",
+              "",
+              "pm.test(\"Created note fields are correct\", function () {",
+              "  const jsonData = pm.response.json();",
+              "",
+              "  pm.expect(jsonData.data).to.have.property(\"title\", \"Test Note\");",
+              "  pm.expect(jsonData.data).to.have.property(\"description\", \"Test Description\");",
+              "  pm.expect(jsonData.data).to.have.property(\"category\", \"Home\");",
+              "  pm.expect(jsonData.data).to.have.property(\"completed\").that.is.a(\"boolean\");",
+              "  pm.expect(jsonData.data).to.have.property(\"id\").that.is.a(\"string\");",
+              "});"
             ],
             "type": "text/javascript",
             "packages": {},
@@ -209,8 +238,12 @@
         {
           "listen": "prerequest",
           "script": {
-            "exec": [],
-            "type": "text/javascript"
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
           }
         }
       ],
