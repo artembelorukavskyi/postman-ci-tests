@@ -1,0 +1,39 @@
+version: '3.9'
+
+services:
+  jenkins-postman:
+    build:
+      context: .
+      dockerfile: Dockerfile.jenkins
+    container_name: jenkins_postman
+    privileged: true
+    user: root
+    ports:
+      - "8081:8080"
+      - "50001:50000"
+    volumes:
+      - jenkins_postman_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - postman_network
+
+  ngrok-postman:
+    image: ngrok/ngrok:latest
+    container_name: ngrok_postman
+    restart: always
+    environment:
+      - NGROK_AUTHTOKEN=3BDAVZalZX8SEbjC8Cbl9TbVaVR_3D1NLpPa7FFBNrQMJXyvA
+    command:
+      - "http"
+      - "jenkins-postman:8080"
+    networks:
+      - postman_network
+    depends_on:
+      - jenkins-postman
+
+volumes:
+  jenkins_postman_home:
+
+networks:
+  postman_network:
+    driver: bridge

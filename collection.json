@@ -1,0 +1,400 @@
+{
+  "info": {
+    "_postman_id": "c63ffe36-b1c4-49d6-a6e1-c1da73d7026f",
+    "name": "API_testing",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "20900798"
+  },
+  "item": [
+    {
+      "name": "Login",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "let token;",
+              "",
+              "try {",
+              "  const json = pm.response.json();",
+              "  token = json?.data?.token || json?.token || json?.access_token;",
+              "} catch (e) {",
+              "  // if response is not JSON, ignore",
+              "}",
+              "",
+              "token = token || pm.response.headers.get(\"x-auth-token\");",
+              "",
+              "pm.test(\"Login status is 200\", () => {",
+              "  pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"Token exists\", () => {",
+              "  pm.expect(token, \"auth token\").to.be.ok;",
+              "});",
+              "",
+              "pm.collectionVariables.set(\"authToken\", token);",
+              "",
+              "const redirect = pm.collectionVariables.get(\"postLoginRedirect\");",
+              "if (redirect) {",
+              "  pm.collectionVariables.unset(\"postLoginRedirect\");",
+              "  pm.execution.setNextRequest(redirect);",
+              "}"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/x-www-form-urlencoded",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "email",
+              "value": "artem.belorukavskyi@ukr.net",
+              "type": "text",
+              "uuid": "850ab054-73b1-450e-a5bd-356460c6ee38",
+              "description": "Enter email"
+            },
+            {
+              "key": "password",
+              "value": "qweqwe",
+              "type": "text",
+              "uuid": "58aa63c6-ac0f-4703-a4fb-9a3397d6a247",
+              "description": "Enter password"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/login",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "UserProfile",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": []
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/profile",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "profile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "UpdateUserProfile",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "name",
+              "value": "artem.belorukavskyi",
+              "type": "text",
+              "description": "Enter name"
+            },
+            {
+              "key": "phone",
+              "value": "11122233",
+              "type": "text",
+              "description": "Enter phone number"
+            },
+            {
+              "key": "company",
+              "value": "Playtika",
+              "type": "text",
+              "description": "Enter company name"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/profile",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "profile"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "CreateNote",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "title",
+              "value": "Test Note",
+              "type": "text",
+              "uuid": "a4772c81-3eca-4c2b-a5ca-b7fefb8376a1"
+            },
+            {
+              "key": "description",
+              "value": "Test Description",
+              "type": "text",
+              "uuid": "b8e8b66a-1846-4b34-bda5-d538b63574f4"
+            },
+            {
+              "key": "category",
+              "value": "Home",
+              "type": "text",
+              "uuid": "24fcd30b-a1b6-409f-9ae7-e800a6b9b210"
+            }
+          ]
+        },
+        "url": {
+          "raw": "{{notesUrl}}",
+          "host": [
+            "{{notesUrl}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "NotebyId",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [],
+            "type": "text/javascript"
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{notesUrl}}/{{notesId}}",
+          "host": [
+            "{{notesUrl}}"
+          ],
+          "path": [
+            "{{notesId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "DeleteNotes",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{notesUrl}}/{{notesId}}",
+          "host": [
+            "{{notesUrl}}"
+          ],
+          "path": [
+            "{{notesId}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Logout",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": []
+        },
+        "url": {
+          "raw": "{{baseUrl}}/users/logout",
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "users",
+            "logout"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "auth": {
+    "type": "apikey",
+    "apikey": [
+      {
+        "key": "value",
+        "value": "{{authToken}}",
+        "type": "string"
+      },
+      {
+        "key": "key",
+        "value": "x-auth-token",
+        "type": "string"
+      }
+    ]
+  },
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "requests": {},
+        "exec": [
+          "const LOGIN_REQUEST_NAME = \"Login\";",
+          "",
+          "if (pm.info.requestName === LOGIN_REQUEST_NAME) return;",
+          "",
+          "const token = pm.collectionVariables.get(\"authToken\");",
+          "",
+          "if (!token) {",
+          "    console.log(\"🚀 Токен відсутній. Йдемо на логін...\");",
+          "    pm.collectionVariables.set(\"postLoginRedirect\", pm.info.requestName);",
+          "    pm.execution.setNextRequest(LOGIN_REQUEST_NAME);",
+          "}"
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "packages": {},
+        "requests": {},
+        "exec": [
+          "if (pm.response.code === 200 || pm.response.code === 201) {",
+          "    const response = pm.response.json();",
+          "",
+          "    if (response.data && response.data.id) {",
+          "        pm.collectionVariables.set(\"notesId\", response.data.id);",
+          "        console.log(\"✅ Новий ID збережено: \" + response.data.id);",
+          "    }",
+          "}"
+        ]
+      }
+    }
+  ],
+  "variable": [
+    {
+      "key": "authToken",
+      "value": ""
+    },
+    {
+      "key": "notesId",
+      "value": ""
+    }
+  ]
+}
